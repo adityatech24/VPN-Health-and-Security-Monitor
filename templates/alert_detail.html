@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Alert Detail – VPN Monitor{% endblock %}
+{% block page_title %}Alert Detail{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('alerts.alerts') }}">Security Alerts</a></li>
+                    <li class="breadcrumb-item active">Alert #{{ alert.id }}</li>
+                </ol>
+            </nav>
+
+            <!-- Alert Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-header
+                    {% if alert.severity == 'critical' %}bg-danger text-white
+                    {% elif alert.severity == 'high' %}bg-warning text-dark
+                    {% elif alert.severity == 'medium' %}bg-info text-dark
+                    {% else %}bg-light{% endif %}
+                    d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ alert.alert_type | replace('_', ' ') | title }}
+                        </h5>
+                        <small>Alert #{{ alert.id }} &bull; {{ alert.timestamp }}</small>
+                    </div>
+                    <div>
+                        {% if alert.severity == 'critical' %}
+                            <span class="badge bg-white text-danger fs-6">CRITICAL</span>
+                        {% elif alert.severity == 'high' %}
+                            <span class="badge bg-danger fs-6">HIGH</span>
+                        {% elif alert.severity == 'medium' %}
+                            <span class="badge bg-warning text-dark fs-6">MEDIUM</span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6">LOW</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Description -->
+                    <div class="alert
+                        {% if alert.severity == 'critical' %}alert-danger
+                        {% elif alert.severity == 'high' %}alert-warning
+                        {% elif alert.severity == 'medium' %}alert-info
+                        {% else %}alert-secondary{% endif %}">
+                        <strong><i class="bi bi-info-circle me-1"></i>Description:</strong><br>
+                        {{ alert.description }}
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <th class="text-muted" style="width:40%">Source IP</th>
+                                        <td><code>{{ alert.source_ip or '—' }}</code></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">Username</th>
+                                        <td>{{ alert.username or '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">VPN Server</th>
+                                        <td>{{ alert.server_name or '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">Severity</th>
+                                        <td>
+                                            {% if alert.severity == 'critical' %}
+                                                <span class="badge bg-danger">Critical</span>
+                                            {% elif alert.severity == 'high' %}
+                                                <span class="badge bg-warning text-dark">High</span>
+                                            {% elif alert.severity == 'medium' %}
+                                                <span class="badge bg-info text-dark">Medium</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Low</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">Status</th>
+                                        <td>
+                                            {% if alert.status == 'open' %}
+                                                <span class="badge bg-warning text-dark">Open</span>
+                                            {% elif alert.status == 'acknowledged' %}
+                                                <span class="badge bg-info text-dark">Acknowledged</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Resolved</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">Detected At</th>
+                                        <td><small>{{ alert.timestamp }}</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            {% if alert.details %}
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h6 class="fw-bold"><i class="bi bi-clipboard-data me-1"></i>Technical Details</h6>
+                                    {% for item in alert.details.split('|') %}
+                                        <div class="small mb-1">
+                                            {% set parts = item.strip().split(':') %}
+                                            {% if parts|length >= 2 %}
+                                                <span class="text-muted">{{ parts[0] }}:</span>
+                                                <strong>{{ parts[1:] | join(':') | trim }}</strong>
+                                            {% else %}
+                                                {{ item.strip() }}
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Recommended Action -->
+                    <div class="card bg-light border-start border-primary border-3 mb-4">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-primary"><i class="bi bi-lightbulb me-2"></i>Recommended Action</h6>
+                            <p class="mb-0">{{ recommended }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        {% if alert.status == 'open' %}
+                        <form action="{{ url_for('alerts.acknowledge', alert_id=alert.id) }}" method="POST">
+                            <button type="submit" class="btn btn-info text-dark">
+                                <i class="bi bi-check me-1"></i>Acknowledge
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% if alert.status != 'resolved' %}
+                        <form action="{{ url_for('alerts.resolve', alert_id=alert.id) }}" method="POST">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check2-all me-1"></i>Mark Resolved
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{{ url_for('alerts.alerts') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Alerts
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

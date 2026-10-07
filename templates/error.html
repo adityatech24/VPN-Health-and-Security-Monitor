@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} – VPN Monitor{% endblock %}
+{% block page_title %}Error{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 text-center">
+            <div class="display-1 fw-bold text-muted">{{ code }}</div>
+            <h4 class="text-danger"><i class="bi bi-exclamation-circle me-2"></i>{{ message }}</h4>
+            <p class="text-muted">Something went wrong. Please go back and try again.</p>
+            <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-house me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

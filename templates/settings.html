@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Settings – VPN Monitor{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            <div class="card border-0">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-gear me-2 text-primary"></i>Detection & Analysis Settings</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-4">
+                        These settings control the thresholds used by the security analysis engine.
+                        Changes take effect immediately on the next analysis run.
+                    </p>
+                    <form method="POST" action="{{ url_for('settings.settings') }}">
+                        {% for meta in settings_meta %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">{{ meta.label }}</label>
+                            <p class="text-muted small mb-1">{{ meta.description }}</p>
+                            {% if meta.type == 'time' %}
+                                <input type="time" name="{{ meta.key }}" class="form-control"
+                                       value="{{ current[meta.key] }}" required>
+                            {% else %}
+                                <input type="number" name="{{ meta.key }}" class="form-control"
+                                       value="{{ current[meta.key] }}"
+                                       min="{{ meta.get('min', 1) }}"
+                                       max="{{ meta.get('max', 9999) }}"
+                                       required>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>Save Settings
+                            </button>
+                            <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card border-0 mt-3 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold"><i class="bi bi-info-circle me-1 text-primary"></i>How Settings Work</h6>
+                    <ul class="small text-muted mb-0">
+                        <li><strong>Failed Login Threshold:</strong> If an IP has this many failures in the time window → HIGH alert.</li>
+                        <li><strong>Time Window:</strong> The sliding time window (minutes) for counting events.</li>
+                        <li><strong>Normal Login Hours:</strong> Successful logins outside these hours → MEDIUM alert.</li>
+                        <li><strong>Multi-Username Threshold:</strong> This many different usernames from one IP → MEDIUM alert.</li>
+                        <li><strong>Server Failure Threshold:</strong> This many offline checks → HIGH repeated-failure alert.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Run Analysis Card -->
+            <div class="card border-0 mt-3">
+                <div class="card-body">
+                    <h6 class="fw-bold"><i class="bi bi-cpu me-1 text-warning"></i>Run Security Analysis</h6>
+                    <p class="small text-muted">Click below to re-run the analysis engine on all stored logs with the current settings.</p>
+                    <button class="btn btn-warning" id="runAnalysisBtn">
+                        <i class="bi bi-play-circle me-1"></i>Run Analysis Now
+                    </button>
+                    <div id="analysisResult" class="mt-2"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('runAnalysisBtn').addEventListener('click', function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Analyzing...';
+    document.getElementById('analysisResult').innerHTML = '';
+
+    fetch('/api/analyze', { method: 'POST' })
+        .then(r => r.json())
+        .then(function(data) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-play-circle me-1"></i>Run Analysis Now';
+            if (data.status === 'success') {
+                document.getElementById('analysisResult').innerHTML =
+                    '<div class="alert alert-success">' + data.data.message + '</div>';
+            } else {
+                document.getElementById('analysisResult').innerHTML =
+                    '<div class="alert alert-danger">' + data.message + '</div>';
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-play-circle me-1"></i>Run Analysis Now';
+            document.getElementById('analysisResult').innerHTML =
+                '<div class="alert alert-danger">Network error.</div>';
+        });
+});
+</script>
+{% endblock %}

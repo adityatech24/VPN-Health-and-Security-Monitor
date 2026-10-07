@@ -1,0 +1,275 @@
+/*
+ * style.css - VPN Health & Security Monitor
+ * Professional cybersecurity dashboard theme
+ */
+
+/* ===== CSS VARIABLES ===== */
+:root {
+    --sidebar-width: 230px;
+    --topbar-height: 58px;
+    --bg: #f0f2f5;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --text: #1f2328;
+    --muted: #57606a;
+    --primary: #0d6efd;
+    --sidebar-bg: #0f172a;
+    --sidebar-text: #cbd5e1;
+    --sidebar-active: #3b82f6;
+    --sidebar-hover: #1e293b;
+}
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: width 0.25s ease;
+    overflow: hidden;
+}
+
+.sidebar.collapsed {
+    width: 56px;
+}
+
+.sidebar.collapsed .sidebar-brand span,
+.sidebar.collapsed .sidebar-link span,
+.sidebar.collapsed .sidebar-footer {
+    display: none;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    padding: 18px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    border-bottom: 1px solid #1e293b;
+    white-space: nowrap;
+    gap: 8px;
+}
+
+.sidebar-brand i {
+    font-size: 1.2rem;
+    color: var(--sidebar-active);
+    flex-shrink: 0;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 12px 0;
+    overflow-y: auto;
+}
+
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover {
+    background: var(--sidebar-hover);
+    color: #ffffff;
+}
+
+.sidebar-link.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: #ffffff;
+    border-left-color: var(--sidebar-active);
+    font-weight: 600;
+}
+
+.sidebar-link i {
+    font-size: 1rem;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #1e293b;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.25s ease;
+}
+
+.main-content.expanded {
+    margin-left: 56px;
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+    height: var(--topbar-height);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* ===== CONTENT AREA ===== */
+.content-area {
+    flex: 1;
+    padding: 24px;
+}
+
+.content-footer {
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    background: var(--surface);
+}
+
+/* ===== STAT CARDS ===== */
+.stat-card {
+    background: var(--surface);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* ===== SOFT COLOR BACKGROUNDS ===== */
+.bg-primary-soft  { background: rgba(13,110,253,0.1); }
+.bg-success-soft  { background: rgba(25,135,84,0.1); }
+.bg-danger-soft   { background: rgba(220,53,69,0.1); }
+.bg-warning-soft  { background: rgba(255,193,7,0.15); }
+.bg-info-soft     { background: rgba(13,202,240,0.1); }
+
+/* ===== CARDS ===== */
+.card {
+    background: var(--surface);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* ===== HEALTH CARD ===== */
+.health-card {
+    border: 1px solid var(--border) !important;
+    transition: box-shadow 0.2s;
+}
+.health-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+}
+
+/* ===== TABLES ===== */
+.log-table th, .log-table td {
+    font-size: 0.8rem;
+    vertical-align: middle;
+}
+
+.table-danger-soft {
+    background-color: rgba(220, 53, 69, 0.05) !important;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ===== BADGES ===== */
+.badge { font-size: 0.72rem; }
+
+/* ===== CODE ===== */
+code {
+    font-size: 0.8rem;
+    background: #f8f9fa;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: #d63384;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 56px;
+    }
+    .sidebar .sidebar-brand span,
+    .sidebar .sidebar-link span,
+    .sidebar .sidebar-footer {
+        display: none;
+    }
+    .main-content {
+        margin-left: 56px;
+    }
+    .content-area {
+        padding: 12px;
+    }
+}

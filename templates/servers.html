@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}VPN Servers – VPN Monitor{% endblock %}
+{% block page_title %}VPN Servers{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Add Server Form -->
+    <div class="card border-0 mb-4">
+        <div class="card-header bg-transparent border-0">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Add New VPN Server</h6>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('servers.add_server_route') }}" method="POST" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Server Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. VPN-Server-01" required maxlength="100">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Hostname / IP <span class="text-danger">*</span></label>
+                    <input type="text" name="hostname" class="form-control" placeholder="e.g. 10.0.1.10" required maxlength="255">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">VPN Type</label>
+                    <select name="vpn_type" class="form-select">
+                        {% for vt in vpn_types %}
+                        <option value="{{ vt }}">{{ vt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Location</label>
+                    <input type="text" name="location" class="form-control" placeholder="e.g. Mumbai" maxlength="100">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">Port</label>
+                    <input type="number" name="port" class="form-control" value="1194" min="1" max="65535">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus"></i> Add
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Server List -->
+    <div class="card border-0">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-server me-2 text-primary"></i>Monitored VPN Servers</h6>
+            <span class="badge bg-secondary">{{ servers|length }} server(s)</span>
+        </div>
+        <div class="card-body p-0">
+            {% if servers %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Server Name</th>
+                            <th>Hostname / IP</th>
+                            <th>VPN Type</th>
+                            <th>Location</th>
+                            <th>Port</th>
+                            <th>Status</th>
+                            <th>Last Checked</th>
+                            <th>Availability</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in servers %}
+                        <tr>
+                            <td><strong>{{ s.name }}</strong></td>
+                            <td><code>{{ s.hostname }}</code></td>
+                            <td>
+                                <span class="badge bg-secondary">{{ s.vpn_type }}</span>
+                            </td>
+                            <td>{{ s.location or '—' }}</td>
+                            <td>{{ s.port if s.port else '—' }}</td>
+                            <td>
+                                {% if s.current_status == 'online' %}
+                                    <span class="badge bg-success"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem"></i>Online</span>
+                                {% elif s.current_status == 'offline' %}
+                                    <span class="badge bg-danger"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem"></i>Offline</span>
+                                {% elif s.current_status == 'warning' %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Warning</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if s.last_checked %}
+                                    <small class="text-muted">{{ s.last_checked[:16] }}</small>
+                                {% else %}
+                                    <small class="text-muted">Never</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:8px; min-width:60px">
+                                        <div class="progress-bar
+                                            {% if s.availability_7d >= 90 %}bg-success{% elif s.availability_7d >= 70 %}bg-warning{% else %}bg-danger{% endif %}"
+                                            style="width:{{ s.availability_7d }}%">
+                                        </div>
+                                    </div>
+                                    <small>{{ s.availability_7d }}%</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <form action="{{ url_for('servers.check_server', server_id=s.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-sm btn-outline-info" title="Run health check">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('servers.delete_server_route', server_id=s.id) }}" method="POST"
+                                          onsubmit="return confirm('Delete server {{ s.name }}?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete server">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-server display-4"></i>
+                <p class="mt-3">No VPN servers added yet. Use the form above to add one, or load demo data.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

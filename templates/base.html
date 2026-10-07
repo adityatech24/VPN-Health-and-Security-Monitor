@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VPN Health & Security Monitor{% endblock %}</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-shield-lock-fill me-2"></i>
+        <span>VPN Monitor</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard.dashboard') }}"
+           class="sidebar-link {% if request.endpoint in ['dashboard.dashboard'] %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="{{ url_for('servers.servers') }}"
+           class="sidebar-link {% if request.endpoint in ['servers.servers', 'servers.add_server_route'] %}active{% endif %}">
+            <i class="bi bi-server"></i> VPN Servers
+        </a>
+        <a href="{{ url_for('servers.health') }}"
+           class="sidebar-link {% if request.endpoint == 'servers.health' %}active{% endif %}">
+            <i class="bi bi-heart-pulse"></i> VPN Health
+        </a>
+        <a href="{{ url_for('logs.logs') }}"
+           class="sidebar-link {% if request.endpoint == 'logs.logs' %}active{% endif %}">
+            <i class="bi bi-journal-text"></i> VPN Logs
+        </a>
+        <a href="{{ url_for('alerts.alerts') }}"
+           class="sidebar-link {% if request.endpoint in ['alerts.alerts', 'alerts.alert_detail'] %}active{% endif %}">
+            <i class="bi bi-exclamation-triangle"></i> Security Alerts
+        </a>
+        <a href="{{ url_for('alerts.analytics') }}"
+           class="sidebar-link {% if request.endpoint == 'alerts.analytics' %}active{% endif %}">
+            <i class="bi bi-bar-chart-line"></i> Analytics
+        </a>
+        <a href="{{ url_for('settings.settings') }}"
+           class="sidebar-link {% if request.endpoint == 'settings.settings' %}active{% endif %}">
+            <i class="bi bi-gear"></i> Settings
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <small class="text-muted">ICT Academy Project</small>
+    </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content" id="main-content">
+
+    <!-- Top Navigation Bar -->
+    <nav class="topbar">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm btn-outline-secondary" id="sidebarToggle">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+            <h5 class="mb-0 fw-bold text-primary">
+                <i class="bi bi-shield-check me-1"></i>
+                {% block page_title %}VPN Health & Security Monitor{% endblock %}
+            </h5>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <form action="{{ url_for('api.api_load_demo') }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Load demo data? This will clear existing logs and alerts.')">
+                <button type="submit" class="btn btn-sm btn-warning">
+                    <i class="bi bi-play-circle me-1"></i>Load Demo Data
+                </button>
+            </form>
+            <span class="badge bg-success">
+                <i class="bi bi-circle-fill me-1" style="font-size:0.5rem"></i>Live
+            </span>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="px-4 pt-2">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Page Content -->
+    <div class="content-area">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="content-footer">
+        <small class="text-muted">
+            VPN Health & Security Monitor &bull; ICT Academy Project &bull; For Educational Use Only
+        </small>
+    </footer>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Custom JS -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+<script>
+// Sidebar toggle
+document.getElementById('sidebarToggle').addEventListener('click', function () {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+    document.getElementById('main-content').classList.toggle('expanded');
+});
+
+// Auto-dismiss flash messages after 4 seconds
+setTimeout(function () {
+    document.querySelectorAll('.alert.alert-dismissible').forEach(function (el) {
+        var alert = bootstrap.Alert.getOrCreateInstance(el);
+        if (alert) alert.close();
+    });
+}, 4000);
+
+// Load Demo Data via AJAX (so we stay on same page and reload)
+document.querySelectorAll('form[action*="demo/load"]').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!confirm('Load demo data? This will replace existing logs and alerts with sample data.')) return;
+        var btn = form.querySelector('button[type=submit]');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Loading...';
+        fetch('/api/demo/load', {method: 'POST'})
+            .then(r => r.json())
+            .then(function(data) {
+                if (data.status === 'success') {
+                    alert('✅ ' + data.data.message);
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-play-circle me-1"></i>Load Demo Data';
+                }
+            })
+            .catch(function() {
+                alert('Network error. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-play-circle me-1"></i>Load Demo Data';
+            });
+    });
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
